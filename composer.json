@@ -1,0 +1,21 @@
+{
+	"name": "phi-application",
+	"description": "Phi application",
+
+	"repositories": [
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"}
+	],
+	"require":
+	{
+		"phi-routing": "dev-master"
+	},
+
+	"autoload": {
+		"psr-4": {
+			"Phi\\Application\\": "source/class"
+		},
+		"files": [
+
+		]
+	}
+}
