@@ -12,7 +12,7 @@
 
 	"autoload": {
 		"psr-4": {
-			"Phi\\Application\\": "source/class"
+			"Phi\\Application\\": "source"
 		},
 		"files": [
 
