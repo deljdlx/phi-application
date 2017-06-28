@@ -1,7 +1,8 @@
 <?php
 namespace Phi\Application;
 
-use Phi\Routing\Interfaces\Router;
+use Phi\Routing\Request;
+use Phi\Routing\Router;
 
 
 /**
@@ -20,13 +21,21 @@ class Application
     protected $path;
 
 
+    /**
+     * @var Router
+     */
     protected $router;
+
+
     protected $datasources;
 
 
     protected $output = '';
 
     protected $returnValue = 0;
+
+
+    protected $callback = null;
 
 
     /**
@@ -51,21 +60,45 @@ class Application
         static::$instances[$name] = $this;
     }
 
-    public function run($flush = false)
+
+    /**
+     * @param $callback
+     * @return $this
+     */
+    public function setCallback($callback)
+    {
+        $this->callback = $callback;
+        return $this;
+    }
+
+    public function run(Request $request = null, $flush = false)
     {
 
-        if ($this->router) {
-
-            ob_start();
-            $this->returnValue = $this->router->run();
-            $this->output = ob_get_clean();
-            if ($flush) {
-                echo $this->getOutput();
-            }
-            return $this->returnValue;
-        } else {
-            throw new Exception('Application does not have an instance of "Phi\Interfaces\Router" defined');
+        if ($request == null) {
+            $request=new Request();
         }
+
+
+        if ($this->callback) {
+            if (is_string($this->callback)) {
+                $this->output = $this->callback;
+            }
+            else if(is_callable($this->callback)) {
+                $this->output=call_user_func_array($this->callback, array($request));
+            }
+        } else if ($this->router) {
+
+            $responseCollection = $this->router->route($request);
+            $output = $responseCollection->__toString();
+
+            $this->output = $output;
+        }
+
+        if ($flush) {
+            echo $this->getOutput();
+        }
+
+        return $this;
     }
 
 
@@ -99,22 +132,18 @@ class Application
         return $this;
     }
 
+    /**
+     * @return Router
+     */
+    public function getRouter()
+    {
+        return $this->router;
+    }
+
 
     public function getDefaultRouter()
     {
         return new \Phi\Routing\Router();
-    }
-
-
-    public function get($route, $callback)
-    {
-        if (!$this->router instanceof Router) {
-            $this->setRouter($this->getDefaultRouter());
-        }
-
-        $this->router->get($route, $callback);
-        return $this;
-
     }
 
 
