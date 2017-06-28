@@ -126,6 +126,11 @@ class Application
     }
 
 
+    public function enableRouter() {
+        $this->setRouter($this->getDefaultRouter());
+        return $this;
+    }
+
     public function setRouter(Router $router)
     {
         $this->router = $router;
