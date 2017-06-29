@@ -11,7 +11,7 @@
 	{
 		"phi-routing": "dev-master",
 		"phi-event": "dev-master",
-		"phi-configuration": "dev-configuration"
+		"phi-configuration": "dev-master"
 	},
 
 	"autoload": {
