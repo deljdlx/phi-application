@@ -76,6 +76,8 @@ class Application
     public function run(Request $request = null, $flush = false)
     {
 
+
+
         if ($request == null) {
             $request=new Request();
         }
