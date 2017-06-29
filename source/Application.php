@@ -1,6 +1,7 @@
 <?php
 namespace Phi\Application;
 
+use Phi\Event\Traits\Listenable;
 use Phi\Routing\Request;
 use Phi\Routing\Router;
 
@@ -15,6 +16,7 @@ use Phi\Routing\Router;
 class Application
 {
 
+    use Listenable;
 
     static protected $instances = array();
 

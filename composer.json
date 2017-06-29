@@ -3,11 +3,13 @@
 	"description": "Phi application",
 
 	"repositories": [
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"}
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"},
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-event"}
 	],
 	"require":
 	{
-		"phi-routing": "dev-master"
+		"phi-routing": "dev-master",
+		"phi-event": "dev-master"
 	},
 
 	"autoload": {
