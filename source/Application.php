@@ -1,6 +1,8 @@
 <?php
+
 namespace Phi\Application;
 
+use Phi\Container\Container;
 use Phi\Event\Traits\Listenable;
 use Phi\Routing\Request;
 use Phi\Routing\Router;
@@ -39,6 +41,11 @@ class Application
 
     protected $callback = null;
 
+    /**
+     * @var Container
+     */
+    protected $container;
+
 
     /**
      * @param string $name
@@ -50,7 +57,8 @@ class Application
 
         if (isset(static::$instances[$name])) {
             return static::$instances[$name];
-        } else {
+        }
+        else {
             throw new Exception('Application instance with name ' . $name . ' does not exist');
         }
     }
@@ -60,6 +68,16 @@ class Application
     {
         $this->path = $path;
         static::$instances[$name] = $this;
+
+    }
+
+
+    public function getContainer()
+    {
+        if ($this->container === null) {
+            $this->container = new Container();
+        }
+        return $this->container;
     }
 
 
@@ -77,9 +95,8 @@ class Application
     {
 
 
-
         if ($request == null) {
-            $request=new Request();
+            $request = new Request();
         }
 
 
@@ -87,10 +104,11 @@ class Application
             if (is_string($this->callback)) {
                 $this->output = $this->callback;
             }
-            else if(is_callable($this->callback)) {
-                $this->output=call_user_func_array($this->callback, array($request));
+            else if (is_callable($this->callback)) {
+                $this->output = call_user_func_array($this->callback, array($request));
             }
-        } else if ($this->router) {
+        }
+        else if ($this->router) {
 
             $responseCollection = $this->router->route($request);
             $output = $responseCollection->__toString();
@@ -130,7 +148,8 @@ class Application
     }
 
 
-    public function enableRouter() {
+    public function enableRouter()
+    {
         $this->setRouter($this->getDefaultRouter());
         return $this;
     }
