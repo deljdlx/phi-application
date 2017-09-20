@@ -64,8 +64,13 @@ class Application
     }
 
 
-    public function __construct($path, $name = 'main')
+    public function __construct($path = null, $name = 'main')
     {
+
+        if ($path === null) {
+            $path = getcwd();
+        }
+
         $this->path = $path;
         static::$instances[$name] = $this;
 
