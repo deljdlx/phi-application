@@ -8,6 +8,8 @@ use Phi\Routing\Request;
 use Phi\Routing\Route;
 use Phi\Routing\Router;
 
+use \Phi\Container\Interfaces\Container as IContainer;
+
 
 /**
  * Class Application
@@ -16,7 +18,7 @@ use Phi\Routing\Router;
  *
  * @package Phi
  */
-class Application
+class Application implements IContainer
 {
 
     use Listenable;
@@ -80,13 +82,44 @@ class Application
     }
 
 
+    /**
+     * @return Container
+     */
     public function getContainer()
     {
         if ($this->container === null) {
-            $this->container = new Container();
+            $this->container = $this->getDefaultContainer();
         }
         return $this->container;
     }
+
+    /**
+     * @param IContainer $container
+     * @return $this
+     */
+    public function setContainer(IContainer $container)
+    {
+        $this->container = $container;
+        return $this;
+    }
+
+
+    public function set($name, $callback, $isStatic = true)
+    {
+        $this->getContainer()->set($name, $callback, $isStatic);
+        return $this;
+    }
+
+    public function get($name, $parameters =array())
+    {
+        return $this->getContainer()->get($name, $parameters);
+    }
+
+
+
+
+
+
 
 
     /**
@@ -155,9 +188,13 @@ class Application
         return $this->datasources->getSource($name);
     }
 
+    /**
+     * @return $this
+     */
     public function autobuild()
     {
         $this->enableRouter();
+        return $this;
     }
 
 
@@ -189,15 +226,36 @@ class Application
         return $this->router;
     }
 
+    /**
+     * @param $name
+     * @param $method
+     * @param $validator
+     * @param $callback
+     * @param array $headers
+     * @return Route
+     */
     public function addRoute($name, $method, $validator, $callback, $headers = array()) {
         $route = new Route($method, $validator, $callback, $headers, $name);
         $this->router->addRoute($route, $name);
+        return $route;
     }
 
 
-    public function getDefaultRouter()
+    /**
+     * @return Router
+     */
+    protected function getDefaultRouter()
     {
         return new \Phi\Routing\Router();
+    }
+
+
+
+    /**
+     * @return Container
+     */
+    protected function getDefaultContainer() {
+        return new Container();
     }
 
 

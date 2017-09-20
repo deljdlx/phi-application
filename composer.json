@@ -5,13 +5,15 @@
 	"repositories": [
 		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"},
 		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-event"},
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-configuration"}
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-configuration"},
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-container"}
 	],
 	"require":
 	{
 		"phi-routing": "dev-master",
 		"phi-event": "dev-master",
-		"phi-configuration": "dev-master"
+		"phi-configuration": "dev-master",
+		"phi-container": "dev-master"
 	},
 
 	"autoload": {
