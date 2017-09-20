@@ -5,6 +5,7 @@ namespace Phi\Application;
 use Phi\Container\Container;
 use Phi\Event\Traits\Listenable;
 use Phi\Routing\Request;
+use Phi\Routing\Route;
 use Phi\Routing\Router;
 
 
@@ -19,6 +20,8 @@ class Application
 {
 
     use Listenable;
+
+    const DEFAULT_APPLICATION_NAME = 'main';
 
     static protected $instances = array();
 
@@ -52,7 +55,7 @@ class Application
      * @return Application
      * @throws Exception
      */
-    public static function getInstance($name = 'main')
+    public static function getInstance($name = self::DEFAULT_APPLICATION_NAME)
     {
 
         if (isset(static::$instances[$name])) {
@@ -152,18 +155,31 @@ class Application
         return $this->datasources->getSource($name);
     }
 
+    public function autobuild()
+    {
+        $this->enableRouter();
+    }
 
+
+    /**
+     * @return $this
+     */
     public function enableRouter()
     {
         $this->setRouter($this->getDefaultRouter());
         return $this;
     }
 
+    /**
+     * @param Router $router
+     * @return $this
+     */
     public function setRouter(Router $router)
     {
         $this->router = $router;
         return $this;
     }
+
 
     /**
      * @return Router
@@ -171,6 +187,11 @@ class Application
     public function getRouter()
     {
         return $this->router;
+    }
+
+    public function addRoute($name, $method, $validator, $callback, $headers = array()) {
+        $route = new Route($method, $validator, $callback, $headers, $name);
+        $this->router->addRoute($route, $name);
     }
 
 
