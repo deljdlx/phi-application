@@ -69,7 +69,7 @@ class Application implements IContainer
     }
 
 
-    public function __construct($path = null, $name = 'main')
+    public function __construct($path = null, $instanceName = 'main', $autobuild = true)
     {
 
         if ($path === null) {
@@ -77,7 +77,11 @@ class Application implements IContainer
         }
 
         $this->path = $path;
-        static::$instances[$name] = $this;
+        static::$instances[$instanceName] = $this;
+
+        if($autobuild) {
+            $this->autobuild();
+        }
 
     }
 
@@ -239,6 +243,16 @@ class Application implements IContainer
         $this->router->addRoute($route, $name);
         return $route;
     }
+
+    public function loadRouteConfiguration(RouteConfiguration $configuration)
+    {
+        foreach ($configuration->getRoutes() as $routeName => $route) {
+            $this->router->addRoute($route, $routeName);
+        }
+    }
+
+
+
 
 
     /**
