@@ -52,6 +52,9 @@ class Application implements IContainer
     protected $container;
 
 
+    protected $responsesCollection;
+
+
     /**
      * @param string $name
      * @return Application
@@ -154,15 +157,12 @@ class Application implements IContainer
             }
         }
         else if ($this->router) {
-
-            $responseCollection = $this->router->route($request);
-            $output = $responseCollection->__toString();
-
-            $this->output = $output;
+            $this->responsesCollection = $this->router->route($request, true);
         }
 
+        $this->output = $this->responsesCollection->__toString();
         if ($flush) {
-            echo $this->getOutput();
+            $this->responsesCollection->send();
         }
 
         return $this;
@@ -179,6 +179,14 @@ class Application implements IContainer
     {
         return $this->output;
     }
+
+    public function send()
+    {
+        $this->responsesCollection->send();
+    }
+
+
+
 
 
     public function setDatasources($sources)
