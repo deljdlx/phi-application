@@ -11,7 +11,7 @@
 	],
 	"require":
 	{
-		"phi-routing": "dev-core",
+		"phi-core": "dev-master",
 		"phi-routing": "dev-master",
 		"phi-event": "dev-master",
 		"phi-configuration": "dev-master",
