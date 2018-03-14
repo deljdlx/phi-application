@@ -3,6 +3,7 @@
 	"description": "Phi application",
 
 	"repositories": [
+		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-core"},
 		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"},
 		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-event"},
 		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-configuration"},
@@ -10,6 +11,7 @@
 	],
 	"require":
 	{
+		"phi-routing": "dev-core",
 		"phi-routing": "dev-master",
 		"phi-event": "dev-master",
 		"phi-configuration": "dev-master",
