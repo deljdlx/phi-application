@@ -41,6 +41,8 @@ class Application implements IContainer
     const EVENT_RUN_AFTER_ROUTE_EXECUTION = 'EVENT_RUN_AFTER_ROUTE_EXECUTION';
 
     const EVENT_NO_RESPONSE = __CLASS__.'EVENT_RUN_AFTER_ROUTE_EXECUTION';
+    const EVENT_SUCCESS = __CLASS__.'EVENT_SUCCESS';
+
 
 
 
@@ -306,6 +308,7 @@ class Application implements IContainer
 
 
 
+
     /**
      * @param $callback
      * @return $this
@@ -339,6 +342,9 @@ class Application implements IContainer
     {
         return $this->request;
     }
+
+
+
 
 
     public function run(Request $request = null, array $variables = array(), $flush = false)
@@ -429,14 +435,12 @@ class Application implements IContainer
 
         return $routes;
 
-
-
-
-
     }
 
     public function runRouters($request = null, array $variables = array())
     {
+
+        $this->headers = array();
 
         if ($request == null) {
             $request = Request::getInstance();
@@ -445,6 +449,8 @@ class Application implements IContainer
         $this->responsesCollections = array();
 
         foreach ($this->routers as $router) {
+
+
             $collection = $router->route($request, $variables, $this->executedRoutes);
 
             if(!$collection->isEmpty()) {
@@ -504,8 +510,19 @@ class Application implements IContainer
 
         if($noResponse) {
 
+
+
             $this->fireEvent(
                 static::EVENT_NO_RESPONSE,
+                array(
+                    'request' => $this->request,
+                    'application' => $this
+                )
+            );
+        }
+        else {
+            $this->fireEvent(
+                static::EVENT_SUCCESS,
                 array(
                     'request' => $this->request,
                     'application' => $this
@@ -515,7 +532,7 @@ class Application implements IContainer
 
 
         $output = '';
-        $this->headers = array();
+
         foreach ($this->responsesCollections as $collection) {
             $this->headers = array_merge($this->headers, $collection->getHeaders());
             $output .=$collection->__toString($this->headers);
@@ -525,6 +542,16 @@ class Application implements IContainer
 
         $this->output = $output;
     }
+
+
+
+    public function addHeader(Header $header)
+    {
+        $this->headers[] = $header;
+        return $this;
+    }
+
+
 
     public function getHeaders()
     {
@@ -562,6 +589,12 @@ class Application implements IContainer
     public function getOutput()
     {
         return $this->output;
+    }
+
+    public function setOutput($buffer)
+    {
+        $this->output = $buffer;
+        return $this;
     }
 
 
