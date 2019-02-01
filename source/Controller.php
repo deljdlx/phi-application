@@ -13,9 +13,12 @@ class Controller
     protected $application;
 
 
-    public function __construct(Application $application)
+    public function __construct(Application $application = null)
     {
-        $this->application = $application;
+        if($application) {
+            $this->application = $application;
+        }
+
     }
 
 }
