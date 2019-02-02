@@ -30,10 +30,14 @@ class Application implements IContainer
 
     use Listenable;
 
-    const DEFAULT_APPLICATION_NAME = 'phi-application-main';
+
 
     const EVENT_RUN_START = 'APPLICATION_EVENT_RUN_START';
     const EVENT_INITIALIZE = 'APPLICATION_EVENT_INITIALIZE';
+
+    const EVENT_BEFORE_INITIALIZE = 'APPLICATION_EVENT_BEFORE_INITIALIZE';
+
+
     const EVENT_RUN_BEFORE_ROUTING = 'EVENT_RUN_BEFORE_ROUTING';
     const EVENT_RUN_AFTER_ROUTING = 'EVENT_RUN_AFTER_ROUTING';
 
@@ -51,10 +55,6 @@ class Application implements IContainer
 
 
 
-
-
-
-    static protected $instances = array();
 
     protected $path;
 
@@ -109,48 +109,24 @@ class Application implements IContainer
     protected $executedRoutes;
 
 
-    /**
-     * @param string $name
-     * @return Application
-     * @throws Exception
-     */
-    public static function getInstance($name = null)
-    {
-
-        if($name === null) {
-            $name = static::DEFAULT_APPLICATION_NAME;
-        }
-
-        if (isset(static::$instances[$name])) {
-            return static::$instances[$name];
-        }
-
-        else {
-            throw new Exception('Application instance with name ' . $name . ' does not exist');
-        }
-    }
 
 
-    public function __construct($path = null, $instanceName = null, $autobuild = true)
+    public function __construct($path = null, $autobuild = true)
     {
 
         if ($path === null) {
             $path = getcwd();
         }
 
-        if($instanceName === null) {
-            $instanceName = static::DEFAULT_APPLICATION_NAME;
-        }
 
 
         $this->path = $path;
-        static::$instances[$instanceName] = $this;
+
 
         if($autobuild) {
-            $this->autobuild();
+            $this->initialize();
         }
 
-        $this->initialize();
     }
 
 
@@ -162,15 +138,16 @@ class Application implements IContainer
 
 
 
-    protected function initialize()
+    public function initialize()
     {
         $this->fireEvent(
-            static::EVENT_INITIALIZE,
+            static::EVENT_BEFORE_INITIALIZE,
             array(
-                'request' => $this->request,
                 'application' => $this
             )
         );
+        $this->autobuild();
+        return $this;
     }
 
 
@@ -552,7 +529,9 @@ class Application implements IContainer
     }
 
 
-
+    /**
+     * @return Header[]
+     */
     public function getHeaders()
     {
         return $this->headers;
