@@ -296,9 +296,25 @@ class Application implements IContainer
         return $this;
     }
 
-    public function executeRoute($routeId)
+    public function executeRoute($routerName, $routeId)
     {
-        return $this->getRouter()->executeRoute($routeId);
+        return $this->getRouter($routerName)->executeRoute($routeId);
+    }
+
+
+    /**
+     * @param $routerName
+     * @return Router
+     * @throws Exception
+     */
+    public function getRouter($routerName)
+    {
+        if(array_key_exists($routerName, $this->routers)) {
+            return $this->routers[$routerName];
+        }
+        else {
+            throw new Exception('No router with name "'.$routerName.'" registered');
+        }
     }
 
 
@@ -682,11 +698,11 @@ class Application implements IContainer
     public function addRouter(Router $router, $name = null)
     {
         if($name === null) {
-            $this->routers[] = $router;
+            $name = get_class($router);
         }
-        else {
-            $this->routers[$name] = $router;
-        }
+
+        $this->routers[$name] = $router;
+
         return $this;
 
     }
