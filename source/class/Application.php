@@ -111,7 +111,7 @@ class Application implements IContainer
 
 
 
-    public function __construct($path = null, $autobuild = true)
+    public function __construct($path = null)
     {
 
         if ($path === null) {
@@ -123,9 +123,6 @@ class Application implements IContainer
         $this->path = $path;
 
 
-        if($autobuild) {
-            $this->initialize();
-        }
 
     }
 
@@ -162,22 +159,16 @@ class Application implements IContainer
     /**
      * @return Container
      */
-    public function getContainer($name = null)
+    public function getContainer($name)
     {
-        if($name === null) {
-            if ($this->container === null) {
-                $this->container = $this->getDefaultContainer();
-            }
-            return $this->container;
+
+        if(array_key_exists($name, $this->containers)) {
+            return $this->containers[$name];
         }
         else {
-            if(isset($this->containers[$name])) {
-                return $this->containers[$name];
-            }
-            else {
-                throw new \Exception('Application has no container named "'.$name.'"');
-            }
+            throw new \Exception('Application has no container named "'.$name.'"');
         }
+
     }
 
 
@@ -192,15 +183,6 @@ class Application implements IContainer
         );
     }
 
-    /**
-     * @param IContainer $container
-     * @return $this
-     */
-    public function setContainer(IContainer $container)
-    {
-        $this->container = $container;
-        return $this;
-    }
 
     /**
      * @param IContainer $container
@@ -223,25 +205,14 @@ class Application implements IContainer
     {
 
         if($containerName !== null) {
-            try {
-                $container = $this->getContainer($containerName);
-                return $container->offsetExists($name);
-            }
-            catch(\Exception $e) {
-                return false;
-            }
+            $container = $this->getContainer($containerName);
+            return $container->offsetExists($name);
         }
         else {
-            if($this->getContainer()->offsetExists($name)) {
-                return true;
-            }
-            else {
-                foreach ($this->containers as $container) {
-                    if($container->offsetExists($name)) {
-                        return true;
-                    }
+            foreach ($this->containers as $container) {
+                if($container->offsetExists($name)) {
+                    return true;
                 }
-
             }
         }
 
@@ -262,19 +233,14 @@ class Application implements IContainer
             return $container->get($name, $parameters);
         }
 
-        try {
-            return $this->getContainer()->get($name, $parameters);
-        }
-        catch(\Exception $exception) {
-            foreach ($this->containers as $container) {
-
-
-                if($container->offsetExists($name)) {
-                    return $container->get($name, $parameters);
-                }
+        foreach ($this->containers as $container) {
+            if($container->offsetExists($name)) {
+                return $container->get($name, $parameters);
             }
-            throw $exception;
         }
+
+        throw new Exception('Application has no item registered with name "'.$name.'"');
+
 
     }
 
@@ -627,64 +593,18 @@ class Application implements IContainer
 
 
 
-
-
-
-
-    public function setDatasources($sources)
-    {
-        $this->datasources = $sources;
-        return $this;
-    }
-
-    public function getDatasource($name)
-    {
-        return $this->datasources->getSource($name);
-    }
-
     /**
      * @return $this
      */
     public function autobuild()
     {
         $this->setRequest();
-        $this->setDefaultRouter();
         return $this;
     }
 
 
     //=======================================================
     /**
-     * @return $this
-     */
-    public function setDefaultRouter(Router $router = null)
-    {
-
-        if($router === null) {
-
-            $this->routers[static::DEFAULT_ROUTER_NAME] = new Router();
-        }
-        else {
-            $this->routers[static::DEFAULT_ROUTER_NAME] = $router;
-        }
-
-        return $this;
-    }
-
-
-
-
-    /**
-     * @return Router
-     */
-    protected function getDefaultRouter()
-    {
-
-        if(!array_key_exists(static::DEFAULT_ROUTER_NAME, $this->routers)) {
-            $this->setDefaultRouter();
-        }
-        return $this->routers[static::DEFAULT_ROUTER_NAME];
-    }
 
 
     /**
@@ -708,22 +628,6 @@ class Application implements IContainer
     }
 
     //=======================================================
-
-
-    /**
-     * @param $name
-     * @param $method
-     * @param $validator
-     * @param $callback
-     * @param array $headers
-     * @return Route
-     */
-    public function addRoute($name, $method, $validator, $callback, $headers = array()) {
-        $route = new Route($method, $validator, $callback, $headers, $name);
-        $this->getDefaultRouter()->addRoute($route, $name);
-        return $route;
-    }
-
 
 
 
