@@ -16,6 +16,7 @@ use Phi\Routing\Route;
 use Phi\Routing\Router;
 
 use \Phi\Container\Interfaces\Container as IContainer;
+use Planck\Helper\File;
 
 
 /**
@@ -120,7 +121,7 @@ class Application implements IContainer
 
 
 
-        $this->path = $path;
+        $this->path = File::normalize($path);
 
 
 
