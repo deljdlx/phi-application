@@ -49,6 +49,8 @@ class Application implements IContainer
     const EVENT_SUCCESS = __CLASS__.'EVENT_SUCCESS';
 
 
+    const DEFAULT_CONTAINER_NAME = __CLASS__.'_DEFAULT_CONTAINER';
+
 
 
 
@@ -119,9 +121,11 @@ class Application implements IContainer
             $path = getcwd();
         }
 
-
-
         $this->path = File::normalize($path);
+        $this->addContainer(
+            new Container(),
+           static::DEFAULT_CONTAINER_NAME
+        );
 
 
 
@@ -160,8 +164,12 @@ class Application implements IContainer
     /**
      * @return Container
      */
-    public function getContainer($name)
+    public function getContainer($name = self::DEFAULT_CONTAINER_NAME)
     {
+
+        if($name === null) {
+            $name = static::DEFAULT_CONTAINER_NAME;
+        }
 
         if(array_key_exists($name, $this->containers)) {
             return $this->containers[$name];
