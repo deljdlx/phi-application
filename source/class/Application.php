@@ -313,6 +313,32 @@ class Application implements IContainer
 
 
 
+    public function hasResponse(Request $request = null, array $variables = array())
+    {
+        if ($request !== null || !$this->request) {
+            $this->setRequest($request);
+        }
+
+
+
+        if ($this->callback) {
+            if (is_string($this->callback)) {
+
+                return true;
+            }
+            else if (is_callable($this->callback)) {
+                return true;
+            }
+        }
+
+        else if (!empty($this->routers)) {
+
+            $this->runRouters($request, $variables);
+        }
+
+        return false;
+    }
+
 
 
     public function run(Request $request = null, array $variables = array(), $flush = false)
@@ -509,6 +535,35 @@ class Application implements IContainer
 
 
         $this->output = $output;
+    }
+
+    public function hasValidRoute($request = null, array $variables = array())
+    {
+
+
+        if ($request == null) {
+            $request = Request::getInstance();
+        }
+
+        $this->responsesCollections = array();
+
+        foreach ($this->routers as $router) {
+
+
+            $collection = $router->route($request, $variables, $this->executedRoutes);
+
+            if (!$collection->isEmpty()) {
+                $this->responsesCollections[] = $collection;
+            }
+        }
+
+
+        if(!empty($this->responsesCollections)) {
+            return true;
+        }
+
+        return false;
+
     }
 
 
