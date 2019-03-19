@@ -103,7 +103,7 @@ class Application implements IContainer
     /**
      * @var Header[]
      */
-    protected $headers;
+    protected $headers = [];
 
 
     /**
