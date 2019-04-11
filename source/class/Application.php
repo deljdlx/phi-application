@@ -3,6 +3,7 @@
 namespace Phi\Application;
 
 
+use Phi\Container\Container;
 use Phi\Core\Exception;
 use Phi\Event\Traits\Listenable;
 use Phi\HTTP\Header;
@@ -10,13 +11,13 @@ use Phi\Routing\Request;
 
 
 use Phi\Routing\ResponseCollection;
-use Planck\Container;
+
 
 use Phi\Routing\Route;
 use Phi\Routing\Router;
 
-use \Phi\Container\Interfaces\Container as IContainer;
-use Planck\Helper\File;
+use Phi\Container\Interfaces\Container as IContainer;
+use Phi\Core\Helper\File;
 
 
 /**
@@ -65,7 +66,14 @@ class Application implements IContainer
     /**
      * @var Router[]
      */
-    protected $routers;
+    protected $routers = [];
+
+
+    /**
+     * @var Router
+     */
+    protected $masterRouter;
+
 
 
     /**
@@ -114,7 +122,7 @@ class Application implements IContainer
 
 
 
-    public function __construct($path = null)
+    public function __construct($path = null, $autobuild = true)
     {
 
         if ($path === null) {
@@ -126,6 +134,10 @@ class Application implements IContainer
             new Container(),
            static::DEFAULT_CONTAINER_NAME
         );
+
+        if($autobuild) {
+            $this->initialize();
+        }
 
 
 
@@ -282,7 +294,28 @@ class Application implements IContainer
      * @return Router
      * @throws Exception
      */
-    public function getRouter($routerName)
+    public function getRouter($routerName = null)
+    {
+        if($routerName) {
+            return $this->getRouterByName($routerName);
+        }
+        else {
+            if($this->masterRouter instanceof Router) {
+                return $this->masterRouter;
+            }
+            else {
+                throw new Exception('The master router has not been initialized. Do you have called the initialize method ?');
+            }
+        }
+
+
+
+
+
+    }
+
+
+    public function getRouterByName($routerName)
     {
         if(array_key_exists($routerName, $this->routers)) {
             return $this->routers[$routerName];
@@ -369,8 +402,7 @@ class Application implements IContainer
                 $this->output = call_user_func_array($this->callback, array($request));
             }
         }
-
-        else if (!empty($this->routers)) {
+        else if (!empty($this->routers) || $this->masterRouter instanceof Router) {
 
 
             $this->fireEvent(
@@ -390,6 +422,16 @@ class Application implements IContainer
         }
 
         return $this;
+    }
+
+    public function flush($return = false) {
+        $this->sendHeaders();
+        if($return) {
+            return $this->getOutput();
+        }
+        else {
+            echo $this->getOutput();
+        }
     }
 
 
@@ -442,15 +484,20 @@ class Application implements IContainer
 
         $this->responsesCollections = array();
 
-        foreach ($this->routers as $router) {
+
+        $routers = $this->routers;
+        if ($this->masterRouter instanceof Router) {
+            array_unshift($routers, $this->masterRouter);
+        }
 
 
+
+
+        foreach ($routers as $router) {
             $collection = $router->route($request, $variables, $this->executedRoutes);
-
             if(!$collection->isEmpty()) {
                 $this->responsesCollections[] = $collection;
             }
-
         }
 
 
@@ -503,8 +550,6 @@ class Application implements IContainer
 
 
         if($noResponse) {
-
-
 
             $this->fireEvent(
                 static::EVENT_NO_RESPONSE,
@@ -663,6 +708,7 @@ class Application implements IContainer
     public function autobuild()
     {
         $this->setRequest();
+        $this->masterRouter = new Router();
         return $this;
     }
 
