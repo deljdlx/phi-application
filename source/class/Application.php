@@ -3,10 +3,12 @@
 namespace Phi\Application;
 
 
-use Phi\Container\Container;
+
+use Phi\Container\FederatedContainer;
 use Phi\Core\Exception;
 use Phi\Event\Traits\Listenable;
 use Phi\HTTP\Header;
+use Phi\Routing\FederatedRouter;
 use Phi\Routing\Request;
 
 
@@ -40,25 +42,10 @@ class Application implements IContainer
     const EVENT_BEFORE_INITIALIZE = 'APPLICATION_EVENT_BEFORE_INITIALIZE';
 
 
-    const EVENT_RUN_BEFORE_ROUTING = 'EVENT_RUN_BEFORE_ROUTING';
-    const EVENT_RUN_AFTER_ROUTING = 'EVENT_RUN_AFTER_ROUTING';
-
-    const EVENT_RUN_BEFORE_ROUTE_EXECUTION = 'EVENT_RUN_BEFORE_ROUTE_EXECUTION';
-    const EVENT_RUN_AFTER_ROUTE_EXECUTION = 'EVENT_RUN_AFTER_ROUTE_EXECUTION';
-
-    const EVENT_NO_RESPONSE = __CLASS__.'EVENT_RUN_AFTER_ROUTE_EXECUTION';
-    const EVENT_SUCCESS = __CLASS__.'EVENT_SUCCESS';
-
-
-    const DEFAULT_CONTAINER_NAME = __CLASS__.'_DEFAULT_CONTAINER';
-
-
-
-
-    const DEFAULT_ROUTER_NAME = 'main';
-
-
-
+    /**
+     * @var State
+     */
+    protected $executionState;
 
     protected $path;
 
@@ -73,6 +60,11 @@ class Application implements IContainer
      * @var Router
      */
     protected $masterRouter;
+
+    /**
+     * @var FederatedRouter
+     */
+    protected $federatedRouter;
 
 
 
@@ -92,21 +84,12 @@ class Application implements IContainer
 
     protected $callback = null;
 
-    /**
-     * @var Container
-     */
-    protected $container;
 
     /**
-     * @var Container[]
+     * @var FederatedContainer
      */
-    protected $containers = array();
+    protected $containerManager;
 
-
-    /**
-     * @var ResponseCollection[]
-     */
-    protected $responsesCollections;
 
     /**
      * @var Header[]
@@ -114,6 +97,7 @@ class Application implements IContainer
     protected $headers = [];
 
 
+<<<<<<< HEAD
     /**
      * @var Route[]
      */
@@ -126,6 +110,8 @@ class Application implements IContainer
     protected $responsesCollection;
 
 
+=======
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
 
 
     public function __construct($path = null, $autobuild = true)
@@ -136,20 +122,33 @@ class Application implements IContainer
         }
 
         $this->path = File::normalize($path);
-        $this->addContainer(
-            new Container(),
-           static::DEFAULT_CONTAINER_NAME
-        );
+
+        $this->executionState = new State($this);
+
+        $this->containerManager = new FederatedContainer();
 
         if($autobuild) {
             $this->initialize();
         }
-
-
-
     }
 
 
+    public function set($name, $callback, $isStatic = true, $containerName = null)
+    {
+        $this->containerManager->set($name, $callback, $isStatic, $containerName);
+        return $this;
+    }
+
+
+    public function get($name, $parameters =array(), $containerName = null)
+    {
+        return $this->containerManager->get($name, $parameters, $containerName);
+    }
+
+
+    /**
+     * @return string
+     */
     public function getFilepathRoot()
     {
         return $this->path;
@@ -171,6 +170,7 @@ class Application implements IContainer
     }
 
 
+<<<<<<< HEAD
     /**
      * @return Route[]
      */
@@ -183,78 +183,70 @@ class Application implements IContainer
      * @param string $name
      * @return Container
      * @throws \Exception
+=======
+
+    //=======================================================
+
+    /**
+     * @return Route[]
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
      */
-    public function getContainer($name = self::DEFAULT_CONTAINER_NAME)
+    public function getExecutedRoutes()
     {
-
-        if($name === null) {
-            $name = static::DEFAULT_CONTAINER_NAME;
-        }
-
-        if(array_key_exists($name, $this->containers)) {
-            return $this->containers[$name];
-        }
-        else {
-            throw new \Exception('Application has no container named "'.$name.'"');
-        }
-
+        return $this->federatedRouter->executedRoutes();
     }
 
 
-    /**
-     * @return Container[]
-     */
-    public function getContainers()
+    public function runRouters($request = null, array $variables = array())
     {
-        return array_merge(
-            array($this->container),
-            $this->containers
-        );
-    }
-
-
-    /**
-     * @param IContainer $container
-     * @param null $containerName
-     * @return $this
-     */
-    public function addContainer(IContainer $container, $containerName = null)
-    {
-        if($containerName === null) {
-            $this->containers[] = $container;
-        }
-        else {
-            $this->containers[$containerName] = $container;
-        }
-
+        $this->federatedRouter->runRouters($request, $variables);
         return $this;
     }
 
 
+    //=======================================================
+
+    /**
+     * @return FederatedRouter
+     */
+    public function getRouter()
+    {
+        return $this->federatedRouter;
+    }
+
+    /**
+<<<<<<< HEAD
+     * @param IContainer $container
+     * @param null $containerName
+     * @return $this
+=======
+     * @return Router[]
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
+     */
+    public function getRouters()
+    {
+        return $this->federatedRouter->getRouters();
+    }
+
+
+<<<<<<< HEAD
     /**
      * @param $name
      * @param null $containerName
      * @return bool
      */
     public function exists($name, $containerName = null)
+=======
+    public function executeRoute($routerName, $routeId)
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
     {
-
-        if($containerName !== null) {
-            $container = $this->getContainer($containerName);
-            return $container->offsetExists($name);
-        }
-        else {
-            foreach ($this->containers as $container) {
-                if($container->offsetExists($name)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-
+        return $this->federatedRouter->executeRoute($routerName, $routeId);
     }
 
+
+
+
+<<<<<<< HEAD
 
     /**
      * @param $name
@@ -264,11 +256,18 @@ class Application implements IContainer
      * @return $this
      */
     public function set($name, $callback, $isStatic = true, $containerName = null)
+=======
+    /**
+     * @param $routerName
+     * @return Router
+     */
+    public function getRouterByName($routerName)
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
     {
-        $this->getContainer($containerName)->set($name, $callback, $isStatic);
-        return $this;
+        return $this->federatedRouter->getRouterByName($routerName);
     }
 
+<<<<<<< HEAD
 
     /**
      * @param $name
@@ -283,17 +282,12 @@ class Application implements IContainer
             $container = $this->getContainer($containerName);
             return $container->get($name, $parameters);
         }
-
-        foreach ($this->containers as $container) {
-            if($container->offsetExists($name)) {
-                return $container->get($name, $parameters);
-            }
-        }
-
-        throw new Exception('Application has no item registered with name "'.$name.'"');
+=======
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
 
 
-    }
+
+    //=======================================================
 
 
 
@@ -311,48 +305,6 @@ class Application implements IContainer
     {
         $this->callback = $callback;
         return $this;
-    }
-
-    public function executeRoute($routerName, $routeId)
-    {
-        return $this->getRouter($routerName)->executeRoute($routeId);
-    }
-
-
-    /**
-     * @param $routerName
-     * @return Router
-     * @throws Exception
-     */
-    public function getRouter($routerName = null)
-    {
-        if($routerName) {
-            return $this->getRouterByName($routerName);
-        }
-        else {
-            if($this->masterRouter instanceof Router) {
-                return $this->masterRouter;
-            }
-            else {
-                throw new Exception('The master router has not been initialized. Do you have called the initialize method ?');
-            }
-        }
-
-
-
-
-
-    }
-
-
-    public function getRouterByName($routerName)
-    {
-        if(array_key_exists($routerName, $this->routers)) {
-            return $this->routers[$routerName];
-        }
-        else {
-            throw new Exception('No router with name "'.$routerName.'" registered');
-        }
     }
 
 
@@ -432,18 +384,12 @@ class Application implements IContainer
                 $this->output = call_user_func_array($this->callback, array($request));
             }
         }
-        else if (!empty($this->routers) || $this->masterRouter instanceof Router) {
+        else if ($this->federatedRouter) {
 
 
-            $this->fireEvent(
-                static::EVENT_RUN_BEFORE_ROUTING,
-                array(
-                    'request' => $this->request,
-                    'application' => $this
-                )
-            );
 
-            $this->runRouters($request, $variables);
+            $this->federatedRouter->route($request, $variables);
+            $this->output = $this->federatedRouter->getOutput();
 
 
             if ($flush) {
@@ -470,11 +416,15 @@ class Application implements IContainer
     }
 
 
+
+
+
     /**
      * @param null $request
      * @param array $variables
-     * @return Route[]
+     * @return bool
      */
+<<<<<<< HEAD
     public function getValidatedRoutes($request = null, array $variables = array())
     {
 
@@ -623,32 +573,12 @@ class Application implements IContainer
      * @param array $variables
      * @return bool
      */
+=======
+>>>>>>> dd71c84959499965981ab37c5aca986d4a2e17e6
     public function hasValidRoute($request = null, array $variables = array())
     {
 
-
-        if ($request == null) {
-            $request = Request::getInstance();
-        }
-
-        $this->responsesCollections = array();
-
-        foreach ($this->routers as $router) {
-
-
-            $collection = $router->route($request, $variables, $this->executedRoutes);
-
-            if (!$collection->isEmpty()) {
-                $this->responsesCollections[] = $collection;
-            }
-        }
-
-
-        if(!empty($this->responsesCollections)) {
-            return true;
-        }
-
-        return false;
+        return $this->federatedRouter->hasValidRoute($request, $variables);
 
     }
 
@@ -771,38 +701,22 @@ class Application implements IContainer
     public function autobuild()
     {
         $this->setRequest();
-        $this->masterRouter = new Router();
+        $this->federatedRouter = new FederatedRouter();
         return $this;
     }
 
 
+
     //=======================================================
-    /**
 
 
     /**
-     * @return Router[]
+     * @return State
      */
-    public function getRouters()
+    public function getExecutionState()
     {
-        return $this->routers;
+        return $this->executionState;
     }
-
-    public function addRouter(Router $router, $name = null)
-    {
-        if($name === null) {
-            $name = get_class($router);
-        }
-
-        $this->routers[$name] = $router;
-
-        return $this;
-
-    }
-
-    //=======================================================
-
-
 
 
 
