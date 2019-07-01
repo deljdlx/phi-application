@@ -64,6 +64,11 @@ class Module
         }
     }
 
+
+    /**
+     * @param Request $request
+     * @return bool|int
+     */
     public function validate(Request $request)
     {
         if(is_bool($this->validator)) {
@@ -71,6 +76,9 @@ class Module
         }
         else if(is_string($this->validator)) {
             return preg_match_all('`'.$this->validator.'`', $request->getURI());
+        }
+        else if(is_callable($this->validator)) {
+            return call_user_func_array($this->validator, array($request));
         }
 
         return false;
