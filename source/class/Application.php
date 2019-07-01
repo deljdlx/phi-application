@@ -120,6 +120,12 @@ class Application implements IContainer
     protected $executedRoutes;
 
 
+    /**
+     * @var ResponseCollection
+     */
+    protected $responsesCollection;
+
+
 
 
     public function __construct($path = null, $autobuild = true)
@@ -165,16 +171,18 @@ class Application implements IContainer
     }
 
 
+    /**
+     * @return Route[]
+     */
     public function getExecutedRoutes()
     {
         return $this->executedRoutes;
     }
 
-
-
-
     /**
+     * @param string $name
      * @return Container
+     * @throws \Exception
      */
     public function getContainer($name = self::DEFAULT_CONTAINER_NAME)
     {
@@ -207,6 +215,7 @@ class Application implements IContainer
 
     /**
      * @param IContainer $container
+     * @param null $containerName
      * @return $this
      */
     public function addContainer(IContainer $container, $containerName = null)
@@ -222,6 +231,11 @@ class Application implements IContainer
     }
 
 
+    /**
+     * @param $name
+     * @param null $containerName
+     * @return bool
+     */
     public function exists($name, $containerName = null)
     {
 
@@ -241,12 +255,28 @@ class Application implements IContainer
 
     }
 
+
+    /**
+     * @param $name
+     * @param $callback
+     * @param bool $isStatic
+     * @param null $containerName
+     * @return $this
+     */
     public function set($name, $callback, $isStatic = true, $containerName = null)
     {
         $this->getContainer($containerName)->set($name, $callback, $isStatic);
         return $this;
     }
 
+
+    /**
+     * @param $name
+     * @param array $parameters
+     * @param null $containerName
+     * @return mixed
+     * @throws Exception
+     */
     public function get($name, $parameters =array(), $containerName = null)
     {
         if($containerName !== null) {
@@ -424,6 +454,10 @@ class Application implements IContainer
         return $this;
     }
 
+    /**
+     * @param bool $return
+     * @return null|string
+     */
     public function flush($return = false) {
         $this->sendHeaders();
         if($return) {
@@ -432,6 +466,7 @@ class Application implements IContainer
         else {
             echo $this->getOutput();
         }
+        return null;
     }
 
 
@@ -582,6 +617,12 @@ class Application implements IContainer
         $this->output = $output;
     }
 
+
+    /**
+     * @param null $request
+     * @param array $variables
+     * @return bool
+     */
     public function hasValidRoute($request = null, array $variables = array())
     {
 
@@ -612,7 +653,10 @@ class Application implements IContainer
     }
 
 
-
+    /**
+     * @param Header $header
+     * @return $this
+     */
     public function addHeader(Header $header)
     {
         $this->headers[] = $header;
@@ -629,6 +673,9 @@ class Application implements IContainer
     }
 
 
+    /**
+     * @return bool
+     */
     public function isHTMLResponse()
     {
         $headers = $this->getHeaders();
@@ -643,24 +690,37 @@ class Application implements IContainer
     }
 
 
-
+    /**
+     * @return mixed
+     */
     public function getPath()
     {
         return $this->path;
     }
 
 
+    /**
+     * @return int
+     */
     public function getReturnValue()
     {
         return $this->returnValue;
     }
 
 
+    /**
+     * @return string
+     */
     public function getOutput()
     {
         return $this->output;
     }
 
+
+    /**
+     * @param string $buffer
+     * @return $this
+     */
     public function setOutput($buffer)
     {
         $this->output = $buffer;
@@ -668,7 +728,9 @@ class Application implements IContainer
     }
 
 
-
+    /**
+     * @return $this
+     */
     public function sendHeaders()
     {
         foreach ($this->getHeaders() as $header) {
@@ -679,9 +741,10 @@ class Application implements IContainer
     }
 
 
-
-
-
+    /**
+     * @param bool $merge
+     * @return ResponseCollection[]
+     */
     public function getResponses($merge = true)
     {
         if($merge) {
