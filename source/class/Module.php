@@ -4,6 +4,7 @@
 namespace Phi\Application;
 
 
+use Phi\FileSystem\Path;
 use Phi\Routing\Exception\NotFound;
 use Phi\Routing\Request;
 use Phi\Routing\Response;
@@ -11,6 +12,12 @@ use Phi\Routing\Router;
 
 class Module
 {
+
+    /**
+     * @var Path
+     */
+    private $path;
+
 
     /**
      * @var Router;
@@ -27,8 +34,14 @@ class Module
 
 
 
-    public function __construct()
+    public function __construct($path = null)
     {
+        if($path === null) {
+            $path = getcwd();
+        }
+
+        $this->path = new Path($path);
+
         $this->router = new Router();
     }
 
@@ -94,6 +107,5 @@ class Module
     {
         return $this->response;
     }
-
-
 }
+

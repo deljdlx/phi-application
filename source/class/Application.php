@@ -5,13 +5,18 @@ namespace Phi\Application;
 
 
 use Phi\Application\Exception\NoResponse;
+use Phi\Container\Container;
 use Phi\FileSystem\Path;
 use Phi\Routing\Request;
+use Phi\Routing\Response;
+use Phi\Routing\Router;
+use Phi\View\View;
 
 class Application
 {
 
     const DEFAULT_MODULE_NAME = 'application';
+    const DEFAULT_CONTAINER_NAME = 'main';
 
     /**
      * @var Path
@@ -30,15 +35,120 @@ class Application
      */
     private $request;
 
+    /**
+     * @var Response
+     */
+    private $response;
 
-    public function __construct($path = null)
+
+    /**
+     * @var View
+     */
+    private $view;
+
+
+    /**
+     * @var Container[]
+     */
+    private $containers;
+
+
+    /**
+     * Application constructor.
+     * @param null $path
+     */
+    public function __construct($path = null, Container $container = null)
     {
         if ($path === null) {
             $path = getcwd();
         }
         $this->path = new Path($path);
         $this->modules[self::DEFAULT_MODULE_NAME] = new Module();
+
+        $this->view = new View();
+
+        if($container) {
+            $this->containers[self::DEFAULT_CONTAINER_NAME] = $container;
+        }
+        else {
+            $this->containers[self::DEFAULT_CONTAINER_NAME] = new Container();
+        }
     }
+
+    public function setContainer(Container $container, $name = null)
+    {
+        if($name === null) {
+            $name = self::DEFAULT_CONTAINER_NAME;
+        }
+
+        if(!array_key_exists($name, $this->containers)) {
+            $this->containers[$name] = $container;
+        }
+        else {
+            throw new Exception('A container named '.$name.' is already registered');
+        }
+        return $this;
+    }
+
+    public function getContainer($name = null)
+    {
+        if($name === null) {
+            $name = self::DEFAULT_CONTAINER_NAME;
+        }
+        if(array_key_exists($name, $this->containers)) {
+            return $this->containers[$name];
+        }
+        else {
+            throw new Exception('No container named '.$name.' registered');
+        }
+    }
+
+    public function get($variableName, array $parameters = array(), $containerName = null)
+    {
+        if($containerName === null) {
+            $containerName = self::DEFAULT_CONTAINER_NAME;
+        }
+
+        $container = $this->getContainer($containerName);
+        return $container->get($variableName, $parameters);
+    }
+
+    public function set($variableName, $callback, $isStatic = true, $containerName = null)
+    {
+        if($containerName === null) {
+            $containerName = self::DEFAULT_CONTAINER_NAME;
+        }
+
+        $container = $this->getContainer($containerName);
+        $container->set($variableName, $callback, $isStatic);
+
+        return $this;
+    }
+
+
+
+
+
+    /**
+     * @param View $view
+     * @return $this
+     */
+    public function setView(View $view)
+    {
+        $this->view = $view;
+        return $this;
+    }
+
+    /**
+     * @return View
+     */
+    public function getView()
+    {
+        return $this->view;
+    }
+
+
+
 
     /**
      * @return string
@@ -95,7 +205,7 @@ class Application
 
     /**
      * @param null $moduleName
-     * @return Module
+     * @return Router
      */
     public function getRouter($moduleName = null) {
         $module = $this->getModule($moduleName);
@@ -118,14 +228,30 @@ class Application
 
         foreach ($this->modules as $module) {
             if($module->execute($request)) {
-                $response = $module->getResponse();
-                return $response;
+                $this->response = $module->getResponse();
+                $this->view->setResponse($this->response);
+                $this->view->setContent($this->response->getContent());
+                return $this->response;
             }
         }
 
         throw new NoResponse();
-
     }
+
+    /**
+     * @return Response
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    public function flush()
+    {
+        $this->response->sendHeaders();
+        echo $this->view->render();
+    }
+
 
 }
 

@@ -10,15 +10,28 @@ class Controller
     /**
      * @var Application
      */
-    protected $application;
+    private $application;
+
+    private $content;
 
 
-    public function __construct(Application $application = null)
+
+
+
+    public function __construct(Application $application)
     {
-        if($application) {
-            $this->application = $application;
-        }
-
+        $this->application = $application;
     }
+
+    public function setContent($content)
+    {
+        $this->content = $content;
+    }
+
+    public function getContent()
+    {
+        return $this->content;
+    }
+
 
 }

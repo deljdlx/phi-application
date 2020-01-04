@@ -1,26 +1,25 @@
 {
-	"name": "phi-application",
+	"name": "elbiniou/phi-application",
 	"description": "Phi application",
 
 	"repositories": [
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-core"},
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-routing"},
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-event"},
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-configuration"},
-		{"type": "vcs", "url": "https://github.com/ElBiniou/phi-container"}
+		{"type": "vcs", "url": "https://github.com/elbiniou/phi-core"},
+		{"type": "vcs", "url": "https://github.com/elbiniou/phi-routing"},
+		{"type": "vcs", "url": "https://github.com/elbiniou/phi-event"},
+		{"type": "vcs", "url": "https://github.com/elbiniou/phi-container"},
+		{"type": "vcs", "url": "https://github.com/elbiniou/phi-http"}
 	],
 	"require":
 	{
-		"phi-core": "dev-master",
-		"phi-routing": "dev-master",
-		"phi-event": "dev-master",
-		"phi-configuration": "dev-master",
-		"phi-container": "dev-master"
+		"elbiniou/phi-core": "0.1.0",
+		"elbiniou/phi-routing": "0.1.0",
+		"elbiniou/phi-event": "0.1.0",
+		"elbiniou/phi-container": "0.1.0"
 	},
 
 	"autoload": {
 		"psr-4": {
-			"Phi\\Application\\": "source"
+			"Phi\\Application\\": "source/class"
 		},
 		"files": [
 
